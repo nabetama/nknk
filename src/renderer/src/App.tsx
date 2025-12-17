@@ -14,20 +14,20 @@ type Comment = {
 function App(): React.JSX.Element {
   const [comments, setComments] = useState<Comment[]>([])
 
-  // テスト用：2秒ごとにコメントを追加する
   useEffect(() => {
-    console.log('App component mounted, setting up listener.') // ①リスナー設定開始を確認
-    // コメントDBを監視
+    const isElectron = window.navigator.userAgent.toLowerCase().includes('electron')
+    if (!isElectron) {
+      window.location.hash = '/post'
+      return
+    }
+
     const commentsRef = ref(db, 'comments')
 
-    // データが追加されたら発火するコールバック関数を指定
     const unsubscribe = onChildAdded(
       commentsRef,
       (snapshot) => {
-        console.log('onChildAdded fired!', snapshot.key, snapshot.val()) // ②データが取得されたか確認
         const val = snapshot.val()
         if (!val) {
-          console.log('Snapshot value is null or undefined.')
           return
         }
 
@@ -36,7 +36,6 @@ function App(): React.JSX.Element {
           text: val.text,
           top: Math.random() * 80 // 高さランダム
         }
-        console.log('New comment created:', newComment) // ③新しいコメントオブジェクトを確認
 
         setComments((prev) => [...prev, newComment])
 
@@ -46,7 +45,7 @@ function App(): React.JSX.Element {
         }, 6000)
       },
       (error) => {
-        console.log('Error in onChildAdded listener:', error)
+        console.error('Error in onChildAdded listener:', error)
       }
     )
 

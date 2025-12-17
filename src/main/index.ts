@@ -26,7 +26,7 @@ function createWindow(): void {
     }
   })
 
-  // mac だとMission Control に表示されないようにする
+  // mac で Mission Control に表示されないようにする
   if (process.platform === 'darwin') {
     mainWindow.setAlwaysOnTop(true, 'screen-saver')
   } else {

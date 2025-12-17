@@ -22,13 +22,12 @@ function App(): React.JSX.Element {
         top: Math.random() * 80 // 画面の上から0~80%の位置にランダム配置
       }
 
-      setComments(prev => [...prev, newComment])
+      setComments((prev) => [...prev, newComment])
 
       // 掃除：6秒後にStateから消す（メモリリーク防止）
       setTimeout(() => {
-        setComments(prev => prev.filter(c => c.id !== newComment.id))
+        setComments((prev) => prev.filter((c) => c.id !== newComment.id))
       }, 6000)
-
     }, 2000)
 
     return () => clearInterval(interval)
@@ -46,7 +45,8 @@ function App(): React.JSX.Element {
             fontSize: '2rem',
             fontWeight: 'bold',
             color: 'white',
-            textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', // 強力な縁取り
+            textShadow:
+              '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', // 強力な縁取り
             whiteSpace: 'nowrap',
             animation: 'flow 5s linear forwards',
             pointerEvents: 'none' // 文字自体もクリック判定を消す

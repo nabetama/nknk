@@ -1,34 +1,68 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+// src/renderer/src/App.tsx
+import { useEffect, useState } from 'react'
+import type React from 'react'
+
+type Comment = {
+  id: number
+  text: string
+  top: number
+}
 
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [comments, setComments] = useState<Comment[]>([])
+
+  // テスト用：2秒ごとにコメントを追加する
+  useEffect(() => {
+    let count = 0
+    const interval = setInterval(() => {
+      count++
+      const newComment: Comment = {
+        id: Date.now(),
+        text: `テストコメント ${count} です！`,
+        top: Math.random() * 80 // 画面の上から0~80%の位置にランダム配置
+      }
+
+      setComments(prev => [...prev, newComment])
+
+      // 掃除：6秒後にStateから消す（メモリリーク防止）
+      setTimeout(() => {
+        setComments(prev => prev.filter(c => c.id !== newComment.id))
+      }, 6000)
+
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
+    <div style={{ width: '100vw', height: '100vh', pointerEvents: 'none' }}>
+      {comments.map((comment) => (
+        <div
+          key={comment.id}
+          style={{
+            position: 'absolute',
+            top: `${comment.top}%`,
+            right: 0, // 初期位置（右端）
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            color: 'white',
+            textShadow: '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000', // 強力な縁取り
+            whiteSpace: 'nowrap',
+            animation: 'flow 5s linear forwards',
+            pointerEvents: 'none' // 文字自体もクリック判定を消す
+          }}
+        >
+          {comment.text}
         </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+      ))}
+
+      <style>{`
+        @keyframes flow {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100vw); } /* 画面幅分左へ移動 */
+        }
+      `}</style>
+    </div>
   )
 }
 

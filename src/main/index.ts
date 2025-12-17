@@ -1,14 +1,23 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
 function createWindow(): void {
-  // Create the browser window.
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width, height } = primaryDisplay.bounds
+
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: width,
+    height: height,
+    x: 0,
+    y: 0,
     show: false,
+    frame: false, // 枠なし
+    transparent: true, // 透明
+    alwaysOnTop: true, // 常に最前面
+    hasShadow: false, // ウィンドウの影を削除
+    resizable: false, // リサイズ不可
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -16,6 +25,21 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  // mac だとMission Control に表示されないようにする
+  if (process.platform === 'darwin') {
+    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  } else {
+    // Windows/Linux
+    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  }
+
+  // マウスイベントの透過設定
+  // true: 表側に透明のレイヤーを置き、裏側のアプリにクリックが通る
+  // forward: true: 表側のレイヤーにマウスイベントを転送
+  mainWindow.setIgnoreMouseEvents(true, { forward: true })
+
+  // mainWindow.webContents.openDevTools({ mode: 'detach' })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()

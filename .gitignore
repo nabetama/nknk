@@ -7,3 +7,6 @@ out
 .vscode
 build
 .env
+# Firebase cache and logs
+.firebase/
+firebase-debug.log

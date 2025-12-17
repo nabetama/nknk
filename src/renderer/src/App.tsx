@@ -2,8 +2,11 @@
 import { useEffect, useState } from 'react'
 import type React from 'react'
 
+import { ref, onChildAdded } from 'firebase/database'
+import { db } from './firebaseConfig'
+
 type Comment = {
-  id: number
+  id: string
   text: string
   top: number
 }
@@ -13,24 +16,41 @@ function App(): React.JSX.Element {
 
   // テスト用：2秒ごとにコメントを追加する
   useEffect(() => {
-    let count = 0
-    const interval = setInterval(() => {
-      count++
-      const newComment: Comment = {
-        id: Date.now(),
-        text: `テストコメント ${count} です！`,
-        top: Math.random() * 80 // 画面の上から0~80%の位置にランダム配置
+    console.log('App component mounted, setting up listener.') // ①リスナー設定開始を確認
+    // コメントDBを監視
+    const commentsRef = ref(db, 'comments')
+
+    // データが追加されたら発火するコールバック関数を指定
+    const unsubscribe = onChildAdded(
+      commentsRef,
+      (snapshot) => {
+        console.log('onChildAdded fired!', snapshot.key, snapshot.val()) // ②データが取得されたか確認
+        const val = snapshot.val()
+        if (!val) {
+          console.log('Snapshot value is null or undefined.')
+          return
+        }
+
+        const newComment: Comment = {
+          id: snapshot.key as string,
+          text: val.text,
+          top: Math.random() * 80 // 高さランダム
+        }
+        console.log('New comment created:', newComment) // ③新しいコメントオブジェクトを確認
+
+        setComments((prev) => [...prev, newComment])
+
+        // 6秒で消す(メモリリーク防止)
+        setTimeout(() => {
+          setComments((prev) => prev.filter((c) => c.id !== newComment.id))
+        }, 6000)
+      },
+      (error) => {
+        console.log('Error in onChildAdded listener:', error)
       }
+    )
 
-      setComments((prev) => [...prev, newComment])
-
-      // 掃除：6秒後にStateから消す（メモリリーク防止）
-      setTimeout(() => {
-        setComments((prev) => prev.filter((c) => c.id !== newComment.id))
-      }, 6000)
-    }, 2000)
-
-    return () => clearInterval(interval)
+    return () => unsubscribe()
   }, [])
 
   return (

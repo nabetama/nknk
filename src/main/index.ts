@@ -38,8 +38,7 @@ function createWindow(): void {
   // true: 表側に透明のレイヤーを置き、裏側のアプリにクリックが通る
   // forward: true: 表側のレイヤーにマウスイベントを転送
   mainWindow.setIgnoreMouseEvents(true, { forward: true })
-
-  // mainWindow.webContents.openDevTools({ mode: 'detach' })
+  mainWindow.webContents.openDevTools({ mode: 'detach' })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()

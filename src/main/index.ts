@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, screen } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, screen, desktopCapturer } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -8,16 +8,9 @@ function createWindow(): void {
   const { width, height } = primaryDisplay.bounds
 
   const mainWindow = new BrowserWindow({
-    width: width,
-    height: height,
-    x: 0,
-    y: 0,
+    width: Math.floor(width * 0.8),
+    height: Math.floor(height * 0.8),
     show: false,
-    frame: false, // 枠なし
-    transparent: true, // 透明
-    alwaysOnTop: true, // 常に最前面
-    hasShadow: false, // ウィンドウの影を削除
-    resizable: false, // リサイズ不可
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -26,19 +19,10 @@ function createWindow(): void {
     }
   })
 
-  // mac で Mission Control に表示されないようにする
-  if (process.platform === 'darwin') {
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
-  } else {
-    // Windows/Linux
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  // Development
+  if (is.dev) {
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   }
-
-  // マウスイベントの透過設定
-  // true: 表側に透明のレイヤーを置き、裏側のアプリにクリックが通る
-  // forward: true: 表側のレイヤーにマウスイベントを転送
-  mainWindow.setIgnoreMouseEvents(true, { forward: true })
-  mainWindow.webContents.openDevTools({ mode: 'detach' })
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -72,8 +56,18 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // renderer process to main process
+  ipcMain.handle('get-sources', async () => {
+    const sources = await desktopCapturer.getSources({
+      types: ['window', 'screen'],
+      thumbnailSize: { width: 150, height: 150 }
+    })
+    return sources.map((s) => ({
+      id: s.id,
+      name: s.name,
+      thumbnail: s.thumbnail.toDataURL()
+    }))
+  })
 
   createWindow()
 

@@ -31,4 +31,11 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
->>>>>>> d427e19 (init)
+
+## LICENSE
+
+MIT
+
+## Author
+
+Mao Nabeta

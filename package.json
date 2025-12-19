@@ -1,10 +1,18 @@
 {
   "name": "nknk",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "0.0.1",
+  "description": "The app that can display comments on the desktop.",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "Mao Nabeta",
+  "homepage": "https://nabetama.com",
+  "license": "MIT",
+  "keywords": [
+    "electron",
+    "react",
+    "typescript",
+    "desktop",
+    "comment"
+  ],
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",

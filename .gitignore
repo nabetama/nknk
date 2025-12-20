@@ -10,3 +10,4 @@ build
 # Firebase cache and logs
 .firebase/
 firebase-debug.log
+**/.firebaserc

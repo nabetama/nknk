@@ -74,7 +74,7 @@ app.whenReady().then(() => {
       .filter((s) => s.id !== ownMediaSourceId)
       .map((s) => ({
         id: s.id,
-        name: s.name,
+        name: s.name.replace(/^画面 (\d+)$/, 'デスクトップ $1'),
         thumbnail: s.thumbnail.toDataURL()
       }))
   })

@@ -3,11 +3,13 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): void {
   const primaryDisplay = screen.getPrimaryDisplay()
   const { width, height } = primaryDisplay.bounds
 
-  const mainWindow = new BrowserWindow({
+  const window = new BrowserWindow({
     width: Math.floor(width * 0.8),
     height: Math.floor(height * 0.8),
     show: false,
@@ -19,16 +21,18 @@ function createWindow(): void {
     }
   })
 
+  mainWindow = window
+
   // Development
   if (is.dev) {
-    mainWindow.webContents.openDevTools({ mode: 'detach' })
+    window.webContents.openDevTools({ mode: 'detach' })
   }
 
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+  window.on('ready-to-show', () => {
+    window.show()
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  window.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
@@ -36,9 +40,9 @@ function createWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    window.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    window.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
 
@@ -62,11 +66,17 @@ app.whenReady().then(() => {
       types: ['window', 'screen'],
       thumbnailSize: { width: 150, height: 150 }
     })
-    return sources.map((s) => ({
-      id: s.id,
-      name: s.name,
-      thumbnail: s.thumbnail.toDataURL()
-    }))
+
+    // Exclude own window
+    const ownMediaSourceId = mainWindow?.getMediaSourceId()
+
+    return sources
+      .filter((s) => s.id !== ownMediaSourceId)
+      .map((s) => ({
+        id: s.id,
+        name: s.name,
+        thumbnail: s.thumbnail.toDataURL()
+      }))
   })
 
   createWindow()
